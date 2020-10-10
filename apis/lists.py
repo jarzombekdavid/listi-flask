@@ -37,7 +37,14 @@ class Lists(Resource):
 
 @api.route('/<list_id>')
 class SingleList(Resource):
+
     def delete(self, list_id):
         params = request.args
         ListModel.delete(list_id)
         return {'deleted': 'true'}
+    
+    def get(self, list_id):
+        lm = ListModel.query(list_id)
+        # serialize lm
+        return lm
+    
