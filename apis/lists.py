@@ -14,10 +14,9 @@ class Lists(Resource):
     def get(self):
         params = request.args
         # get listids a user has access to
-        user_lists = UserModel.query(params.get('user_id', 0))
-        list_ids = [i.user_id for i in user_lists]
+        usr = UserModel.get(int(params['user_id']))
         # get list names/ids
-        list_data = ListModel.batch_get(list_ids)
+        list_data = ListModel.batch_get(usr.lists)
         list_names = [(n.name, n.list_id) for n in list_data]
         return list_names
 

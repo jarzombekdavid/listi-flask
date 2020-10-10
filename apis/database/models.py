@@ -16,6 +16,7 @@ class EmailIndex(GlobalSecondaryIndex):
         projection = AllProjection()
     email = UnicodeAttribute(hash_key=True)
 
+# Comment and Item are nested inside the lists and have their own classes
 class Comment(MapAttribute):
     comment_id = NumberAttribute(hash_key=True)
     source_person = UnicodeAttribute()

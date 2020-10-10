@@ -13,9 +13,14 @@ class Users(Resource):
 
     def get(self):
         if request.args.get('email'):
-            UserModel.email_index(request.args.get('email'))
+            usr = UserModel.email_index.query(request.args.get('email'))
+            usr = [u for u in usr]
+            if usr:
+                return usr[0].to_dict()
+            else:
+                return 'none found'
         else:
-            return {'require email'}
+            return 'require email'
 
 
     def post(self):
@@ -27,7 +32,7 @@ class Users(Resource):
             password=params['password']
         ).save()
         # serialize new_usr
-        return user_id
+        return new_usr
 
 
 @api.route('/<user_id>')
@@ -35,11 +40,11 @@ class SingleUser(Resource):
 
     def delete(self, user_id):
         params = request.args
-        usr = UserModel.get(str(user_id))
+        usr = UserModel.get(int(user_id))
         usr.delete()
-        return {}
+        return {'deleted'}
     
     def get(self, user_id):
-        usr = UserModel.get(str(user_id))
+        usr = UserModel.get(int(user_id))
         return usr.to_dict()
     
