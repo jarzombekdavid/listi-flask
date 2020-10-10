@@ -1,4 +1,3 @@
 pynamodb
 flask
 flask-restx
-flask-login
