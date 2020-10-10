@@ -32,3 +32,12 @@ class Lists(Resource):
         ).save()
         usr = UserModel.user_id(params['user_id'])
         usr.lists.append(lm.list_id)
+        return {'created': 'true'}
+
+
+@api.route('/<list_id>')
+class SingleList(Resource):
+    def delete(self, list_id):
+        params = request.args
+        UserModel.delete(list_id)
+        return {'deleted': 'true'}
