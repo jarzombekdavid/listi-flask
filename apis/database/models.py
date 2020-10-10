@@ -37,6 +37,8 @@ class BaseModel(Model):
         rval = {}
         for key in self.attribute_values:
             rval[key] = self.__getattribute__(key)
+            if isinstance(rval[key], MapAttribute):
+                rval[key] = rval[key].as_dict()
         return rval
 
 
@@ -58,7 +60,6 @@ class UserModel(BaseModel):
     email_index = EmailIndex()
     password = UnicodeAttribute()
     lists = ListAttribute(default=[])
-
 
 if not ListModel.exists():
     ListModel.create_table(read_capacity_units=1, write_capacity_units=1, wait=True)

@@ -5,7 +5,7 @@ from .user import api as user_namespace
 # etc etc.
 
 api = Api(
-    title='v1 api',
+    title='listi v1 api',
 )
 
 api.add_namespace(list_namespace)
