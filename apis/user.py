@@ -16,7 +16,7 @@ class Users(Resource):
             usr = UserModel.email_index.query(request.args.get('email'))
             usr = [u for u in usr]
             if usr:
-                return usr[0].to_dict()
+                return usr[0].as_dict()
             else:
                 return 'none found'
         else:
