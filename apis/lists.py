@@ -39,5 +39,5 @@ class Lists(Resource):
 class SingleList(Resource):
     def delete(self, list_id):
         params = request.args
-        UserModel.delete(list_id)
+        ListModel.delete(list_id)
         return {'deleted': 'true'}
