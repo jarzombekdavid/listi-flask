@@ -2,8 +2,12 @@ from pynamodb.models import Model
 from pynamodb.attributes import UnicodeAttribute, ListAttribute, MapAttribute, JSONAttribute, NumberAttribute
 
 
+# hash key is an index
+# sort key is an aditional search param
+# can really only search based on those 2 things
+
 class Comment(MapAttribute):
-    comment_id = NumberAttribute(hash_key=True)
+    comment_id = NumberAttribute(sort_key=True)
     source_person = UnicodeAttribute()
     comment = UnicodeAttribute()
 
@@ -28,10 +32,10 @@ class ListModel(Model):
 class UserModel(Model):
     class Meta:
         table_name = 'users'
-    user_id = NumberAttribute(hash_key=True)
-    email = UnicodeAttribute()
+    username = UnicodeAttribute(hash_key=True)
+    email = UnicodeAttribute(sort_key=True)
     password = UnicodeAttribute()
-    lists = ListAttribute(of=NumberAttribute)
+    lists = ListAttribute()
 
 
 
