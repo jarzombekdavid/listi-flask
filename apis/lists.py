@@ -18,6 +18,7 @@ class Lists(Resource):
         usr = UserModel.get(int(params['user_id']))
         list_data = [(n.name, n.list_id) for n in ListModel.batch_get(usr.lists)]
         return list_data
+
     @api.doc(params={'user_id': 'active_user', 'name': 'list name'})
     def post(self):
         params = request.args
@@ -26,7 +27,8 @@ class Lists(Resource):
             hash_key=new_id,
             name=params['name'],
             source_user=params['user_id']
-        ).save()
+        )
+        lm.save()
         usr = UserModel.get(int(params['user_id']))
         usr.lists.append(new_id)
         usr.save()
@@ -39,6 +41,7 @@ class SingleList(Resource):
         params = request.args
         ListModel.delete(list_id)
         return {'deleted': 'true'}
+
     def get(self, list_id):
         lm = ListModel.get(list_id)
         return lm.to_dict()

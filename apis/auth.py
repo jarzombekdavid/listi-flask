@@ -1,19 +1,42 @@
 from uuid import uuid4
-from flask import request
+from flask import request, g, jsonify
 from flask_restx import Namespace, Resource
-from .database import UserModel
+from functools import wraps
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from itsdangerous import SignatureExpired, BadSignature
 
+from .database import UserModel
 import logging
 
-api = Namespace('user', description='list operations')
+api = Namespace('', description='login/authorization operations')
+
+def generate_token(user, expiration=TWO_WEEKS):
+    s = Serializer(app.config['SECRET_KEY'], expires_in=expiration)
+    token = s.dumps({
+        'id': user.id,
+        'email': user.email,
+    }).decode('utf-8')
+    return token
+
+def verify_token(token):
+    s = Serializer(app.config['SECRET_KEY'])
+    try:
+        data = s.loads(token)
+    except (BadSignature, SignatureExpired):
+        return None
+    return data
 
 
-@api.route('')
-class Users(Resource):
+
+
+@api.route('/login')
+class Login(Resource):
     def get(self):
+        email, password = request.args.get('email'), request.args.get('password')
         if request.args.get('email'):
             usr = UserModel.email_index.query(request.args.get('email'))
             usr = [u for u in usr]
+
             if usr:
                 return usr[0].as_dict()
             else:
