@@ -13,11 +13,8 @@ class Lists(Resource):
 
     def get(self):
         params = request.args
-        # get listids a user has access to
         usr = UserModel.get(int(params['user_id']))
-        # get list names/ids
-        list_data = ListModel.batch_get(usr.lists)
-        list_names = [(n.name, n.list_id) for n in list_data]
+        list_data = [(n.name, n.list_id) for n in ListModel.batch_get(usr.lists)]
         return list_names
 
     def post(self):
