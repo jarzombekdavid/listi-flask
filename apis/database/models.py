@@ -17,17 +17,19 @@ class EmailIndex(GlobalSecondaryIndex):
     email = UnicodeAttribute(hash_key=True)
 
 # Comment and Item are nested inside the lists and have their own classes
-class Comment(MapAttribute):
-    comment_id = NumberAttribute(hash_key=True)
+class CommentAttr(MapAttribute):
+    comment_id = UnicodeAttribute(hash_key=True)
     source_person = UnicodeAttribute()
     comment = UnicodeAttribute()
 
 
-class Item(MapAttribute):
-    item_id = NumberAttribute(hash_key=True)
+class ItemAttr(MapAttribute):
+    item_id = UnicodeAttribute(hash_key=True)
     source_person = UnicodeAttribute()
     free_text = UnicodeAttribute()
     item_dicts = JSONAttribute()
+    comments = MapAttribute(of=CommentAttr, default={})
+
 
 # create new basemodel to add to_dict for easy serialization
 class BaseModel(Model):
@@ -41,11 +43,11 @@ class BaseModel(Model):
 class ListModel(BaseModel):
     class Meta:
         table_name = 'lists'
-    list_id = NumberAttribute(hash_key=True)
+    list_id = UnicodeAttribute(hash_key=True)
     name = UnicodeAttribute()
-    source_person = UnicodeAttribute()
-    items = ListAttribute(of=Item)
-    comments = ListAttribute(of=Comment)
+    source_user = UnicodeAttribute()
+    items = MapAttribute(of=ItemAttr, default={})
+    
 
 
 class UserModel(BaseModel):
