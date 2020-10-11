@@ -10,10 +10,26 @@ import logging
 
 api = Namespace('', description='login/authorization operations')
 
+
+def authenticate(func):
+    # assumes a returned token in requests call
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        token, user_id = request.args.get('Authentication'), kwargs.get('user_id')
+        token = verify_token()
+        if token.get('user_id') == user_id:  # verify user is the user in the api call
+            return func(*args, **kwargs)
+        if requests.args.get('list_id') and token.get('user_id'):
+            user = UserModel.get('user_id')
+            if requests.args.get('list_id') in user.lists:  # if trying to access list, verify autheticated user has that access
+                return func(*args, **kwargs)
+        flask_restx.abort(401)
+    return wrapper
+
 def generate_token(user, expiration=TWO_WEEKS):
     s = Serializer(app.config['SECRET_KEY'], expires_in=expiration)
     token = s.dumps({
-        'id': user.id,
+        'user_id': user.user_id,
         'email': user.email,
     }).decode('utf-8')
     return token
@@ -23,10 +39,8 @@ def verify_token(token):
     try:
         data = s.loads(token)
     except (BadSignature, SignatureExpired):
-        return None
+        return {}
     return data
-
-
 
 
 @api.route('/login')
@@ -36,34 +50,10 @@ class Login(Resource):
         if request.args.get('email'):
             usr = UserModel.email_index.query(request.args.get('email'))
             usr = [u for u in usr]
-
             if usr:
-                return usr[0].as_dict()
+                return generate_token(user)
             else:
                 return {}
         else:
-            return 'require email'
-
-    def post(self):
-        user_id = UserModel.count() + 2
-        params = request.args
-        new_usr = UserModel(
-            user_id,
-            email=params['email'],
-            password=params['password']
-        ).save()
-        return {'new_user': user_id}
-
-
-@api.route('/<user_id>')
-class SingleUser(Resource):
-    def delete(self, user_id):
-        params = request.args
-        usr = UserModel.get(user_id)
-        usr.delete()
-        return {'deleted'}
-    
-    def get(self, user_id):
-        usr = UserModel.get(user_id)
-        return usr.to_dict()
+            return {'error': 'require email'}
     

@@ -1,10 +1,3 @@
-'''
-
-IGNORE-
-JUNK CODE JUST TO SAVE
-
-'''
-
 
 from functools import wraps
 from flask import request, g, jsonify

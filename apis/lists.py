@@ -4,6 +4,7 @@ from uuid import uuid4
 from flask import request
 from flask_restx import Namespace, Resource
 from .database import ListModel, UserModel
+from .auth import authenticate
 
 import logging
 
