@@ -16,6 +16,8 @@ def authenticate(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         token = request.args.get('token')
+        if not token:
+            abort(401, message='requires authorization token')
         token = verify_token(token)
         if token.get('user_id') == request.args['user_id']:  # verify user is the user in the api call
             return func(*args, **kwargs)
