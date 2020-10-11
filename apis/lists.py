@@ -13,10 +13,11 @@ api = Namespace('lists', description='list operations')
 
 @api.route('')
 class Lists(Resource):
+    method_decorators = [authenticate]
     @api.doc(params={'user_id': 'active_user'})
     def get(self):
         params = request.args
-        usr = UserModel.get(int(params['user_id']))
+        usr = UserModel.get(params['user_id'])
         list_data = [(n.name, n.list_id) for n in ListModel.batch_get(usr.lists)]
         return list_data
 
@@ -30,10 +31,10 @@ class Lists(Resource):
             source_user=params['user_id']
         )
         lm.save()
-        usr = UserModel.get(int(params['user_id']))
+        usr = UserModel.get(params['user_id'])
         usr.lists.append(new_id)
         usr.save()
-        return {'created': 'true'}
+        return {'action': f'new list created: {params["name"]}'}, 201
 
 
 @api.route('/<list_id>')
@@ -41,11 +42,11 @@ class SingleList(Resource):
     def delete(self, list_id):
         params = request.args
         ListModel.delete(list_id)
-        return {'deleted': 'true'}
+        return {'action': 'delete successful'}, 200
 
     def get(self, list_id):
         lm = ListModel.get(list_id)
-        return lm.to_dict()
+        return lm.to_dict(), 200
     
 @api.route('/<list_id>/items')
 class ListItems(Resource):
@@ -54,7 +55,7 @@ class ListItems(Resource):
         lm = ListModel.get(str(list_id))
         item_ids = lm.items.as_dict().keys()
         items = [lm.items[i] for i in list(item_ids) if lm.items[i]]
-        return items
+        return items, 200
     
     @api.doc(params={'user_id': 'active_user', 'free_text': 'free text for item', 'item_dict': 'json of attributes for item'})
     def post(self, list_id): #may need to be put
@@ -68,7 +69,7 @@ class ListItems(Resource):
             'item_dict': params.get('item_dict', {})
         }
         lm.save()
-        return {'added': 'true'}
+        return {'action': 'added item to list'}, 200
 
 
 @api.route('/<list_id>/items/<item_id>')
@@ -87,10 +88,10 @@ class ListItem(Resource):
             'item_dict': params.get('item_dict', lm.items[item_id]['item_dict']),
         }
         lm.save()
-        return {'updated': 'true'}
+        return {'action': 'updated list item'}, 200
     
     def delete(self, list_id, item_id):
         lm = ListModel.get(str(list_id))
         lm.items[item_id] = {}
         lm.save()
-        return {'deleted': 'true'}
+        return {'action': 'item of list deleted'}, 200

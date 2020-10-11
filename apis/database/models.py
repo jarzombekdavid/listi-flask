@@ -12,7 +12,7 @@ class EmailIndex(GlobalSecondaryIndex):
     class Meta:
         read_capacity_units = 1
         write_capacity_units = 1
-        # All attributes are projected
+        # All attributes are projected -- I'm not sure what this does
         projection = AllProjection()
     email = UnicodeAttribute(hash_key=True)
 
@@ -55,11 +55,12 @@ class ListModel(BaseModel):
 class UserModel(BaseModel):
     class Meta:
         table_name = 'users'
-    user_id = NumberAttribute(hash_key=True)
+    user_id = UnicodeAttribute(hash_key=True)
     email = UnicodeAttribute()
     email_index = EmailIndex()
     password = UnicodeAttribute()
     lists = ListAttribute(default=[])
+
 
 if not ListModel.exists():
     ListModel.create_table(read_capacity_units=1, write_capacity_units=1, wait=True)

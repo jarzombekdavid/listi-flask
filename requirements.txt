@@ -1,3 +1,4 @@
 pynamodb
 flask
 flask-restx
+gunicorn

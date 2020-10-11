@@ -1,6 +1,6 @@
 from uuid import uuid4
 from flask import request, g, jsonify
-from flask_restx import Namespace, Resource
+from flask_restx import Namespace, Resource, abort
 from functools import wraps
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import SignatureExpired, BadSignature
@@ -12,22 +12,23 @@ api = Namespace('', description='login/authorization operations')
 
 
 def authenticate(func):
-    # assumes a returned token in requests call
+    # assumes a returned token in request call
     @wraps(func)
     def wrapper(*args, **kwargs):
-        token, user_id = request.args.get('Authentication'), kwargs.get('user_id')
-        token = verify_token()
-        if token.get('user_id') == user_id:  # verify user is the user in the api call
+        token = request.args.get('token')
+        token = verify_token(token)
+        if token.get('user_id') == request.args['user_id']:  # verify user is the user in the api call
             return func(*args, **kwargs)
-        if requests.args.get('list_id') and token.get('user_id'):
-            user = UserModel.get('user_id')
-            if requests.args.get('list_id') in user.lists:  # if trying to access list, verify autheticated user has that access
+        if request.args.get('list_id') and token.get('user_id'):
+            user = UserModel.get(token.get('user_id'))
+            raise ValueError(user.to_dict())
+            if request.args.get('list_id') in user.lists:  # if trying to access list, verify autheticated user has that access
                 return func(*args, **kwargs)
-        flask_restx.abort(401)
+        abort(401)
     return wrapper
 
-def generate_token(user, expiration=TWO_WEEKS):
-    s = Serializer(app.config['SECRET_KEY'], expires_in=expiration)
+def generate_token(user, expiration=1000000):
+    s = Serializer('SECRETKEY', expires_in=expiration)
     token = s.dumps({
         'user_id': user.user_id,
         'email': user.email,
@@ -35,7 +36,7 @@ def generate_token(user, expiration=TWO_WEEKS):
     return token
 
 def verify_token(token):
-    s = Serializer(app.config['SECRET_KEY'])
+    s = Serializer('SECRETKEY')
     try:
         data = s.loads(token)
     except (BadSignature, SignatureExpired):
@@ -48,12 +49,12 @@ class Login(Resource):
     def get(self):
         email, password = request.args.get('email'), request.args.get('password')
         if request.args.get('email'):
-            usr = UserModel.email_index.query(request.args.get('email'))
-            usr = [u for u in usr]
-            if usr:
-                return generate_token(user)
+            user = UserModel.email_index.query(request.args.get('email'))
+            user = [u for u in user]
+            if user:
+                return generate_token(user[0])
             else:
-                return {}
+                return {'error', 'user not found'}, 404
         else:
-            return {'error': 'require email'}
+            return {'error': 'require email'}, 400
     

@@ -10,26 +10,15 @@ api = Namespace('user', description='list operations')
 
 @api.route('')
 class Users(Resource):
-    def get(self):
-        if request.args.get('email'):
-            usr = UserModel.email_index.query(request.args.get('email'))
-            usr = [u for u in usr]
-            if usr:
-                return usr[0].as_dict()
-            else:
-                return {}
-        else:
-            return 'require email'
-
     def post(self):
-        user_id = UserModel.count() + 2
+        user_id = str(uuid4())
         params = request.args
         new_usr = UserModel(
             user_id,
             email=params['email'],
             password=params['password']
         ).save()
-        return {'new_user': user_id}
+        return {'new_user': user_id}, 201
 
 
 @api.route('/<user_id>')
@@ -38,9 +27,9 @@ class SingleUser(Resource):
         params = request.args
         usr = UserModel.get(user_id)
         usr.delete()
-        return {'deleted'}
+        return {'action': 'user deleted'}, 200
     
     def get(self, user_id):
         usr = UserModel.get(user_id)
-        return usr.to_dict()
+        return usr.to_dict(), 200
     
