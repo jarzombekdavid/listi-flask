@@ -58,7 +58,7 @@ class Login(Resource):
             if user:
                 return {'token': generate_token(user[0]), 'user_id': user.user_id}, 200
             else:
-                return {'error', 'user not found'}, 404
+                return {'error': 'user not found'}, 404
         else:
             return {'error': 'require email'}, 400
     
