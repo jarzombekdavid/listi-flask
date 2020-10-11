@@ -56,6 +56,8 @@ class Login(Resource):
                 return {'error', 'error returning user'}, 400
             user = [u for u in user]
             if user:
+                if password <> user.password:
+                    return {'error': 'incorrect password'}, 400
                 return {'token': generate_token(user[0]), 'user_id': user.user_id}, 200
             else:
                 return {'error': 'user not found'}, 404
