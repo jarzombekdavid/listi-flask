@@ -28,8 +28,5 @@ class SingleUser(Resource):
         usr = UserModel.get(user_id)
         usr.delete()
         return {'action': 'user deleted'}, 200
-    
-    def get(self, user_id):
-        usr = UserModel.get(user_id)
-        return usr.to_dict(), 200
+
     
