@@ -14,8 +14,9 @@ class Users(Resource):
         if request.args.get('email'):
             usr = UserModel.email_index.query(request.args.get('email'))
             usr = [u for u in usr]
+            # import pdb; pdb.set_trace()
             if usr:
-                return usr[0].as_dict()
+                return usr[0].to_dict()
             else:
                 return {}
         else:
@@ -36,11 +37,13 @@ class Users(Resource):
 class SingleUser(Resource):
     def delete(self, user_id):
         params = request.args
-        usr = UserModel.get(user_id)
+
+        usr = UserModel.get(int(user_id))
         usr.delete()
-        return {'deleted'}
-    
+        return {"status": 'deleted'}
+
     def get(self, user_id):
-        usr = UserModel.get(user_id)
+        # change user id to int because it comes as str by default
+        # this is one nice thing about fastapi...
+        usr = UserModel.get(int(user_id))
         return usr.to_dict()
-    
