@@ -46,7 +46,7 @@ def verify_token(token):
 
 @api.route('/login')
 class Login(Resource):
-    @api.doc(params={'email': 'email', 'password', 'password'})
+    @api.doc(params={'email': 'email', 'password': 'password'})
     def get(self):
         email, password = request.args.get('email'), request.args.get('password')
         if request.args.get('email'):
