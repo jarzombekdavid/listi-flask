@@ -50,10 +50,13 @@ class Login(Resource):
     def get(self):
         email, password = request.args.get('email'), request.args.get('password')
         if request.args.get('email'):
-            user = UserModel.email_index.query(request.args.get('email'))
+            try:
+                user = UserModel.email_index.query(request.args.get('email'))
+            except:
+                return {'error', 'error returning user'}, 400
             user = [u for u in user]
             if user:
-                return generate_token(user[0])
+                return {'token': generate_token(user[0]), 'user_id': user.user_id}, 200
             else:
                 return {'error', 'user not found'}, 404
         else:
