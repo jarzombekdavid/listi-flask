@@ -7,6 +7,19 @@ from itsdangerous import SignatureExpired, BadSignature
 from .database import UserModel
 
 
+def authenticate_list_access(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        list_id = request.args.get('list_id'):
+        list_id = kwargs['list_id'] if not list_id else list_id
+        if not list_id:
+            return func(*args, **kwargs)
+        approved_lists = UserModel.get(g.current_user).lists
+        if list_id in approved_lists:
+            return func(*args, **kwargs)    
+        abort(404)
+    return wrapper
+
 def authenticate(func):
     @wraps(func)
     def wrapper(*args, **kwargs):

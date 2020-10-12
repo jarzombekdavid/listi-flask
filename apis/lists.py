@@ -11,13 +11,12 @@ import logging
 api = Namespace(
     'lists',
     description='list operations',
-    decorators=[authenticate]
+    decorators=[authenticate, authenticate_list_access]
 )
 
 
 @api.route('')
 class Lists(Resource):
-    @api.doc()
     def get(self):
         usr = UserModel.get(g.current_user)
         list_data = [(n.name, n.list_id) for n in ListModel.batch_get(usr.lists)]
