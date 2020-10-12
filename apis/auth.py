@@ -1,4 +1,4 @@
-from flask import request, g
+from flask import request, g, session
 from flask_restx import abort
 from functools import wraps
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
@@ -10,11 +10,12 @@ from .database import UserModel
 def authenticate_list_access(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        list_id = request.args.get('list_id'):
-        list_id = kwargs['list_id'] if not list_id else list_id
+        list_id = request.args.get('list_id')
+        list_id = kwargs.get('list_id') if not list_id else list_id
         if not list_id:
             return func(*args, **kwargs)
-        approved_lists = UserModel.get(g.current_user).lists
+        token = verify_token(request.args.get('token'))
+        approved_lists = UserModel.get(token['user_id']).lists
         if list_id in approved_lists:
             return func(*args, **kwargs)    
         abort(404)
@@ -27,7 +28,7 @@ def authenticate(func):
             abort(401, message='requires authorization token')
         token = verify_token(request.args.get('token'))
         if token:
-            g.current_user = token['user_id']
+            session['current_user'] = token['user_id']
             return func(*args, **kwargs)
         abort(401)
     return wrapper

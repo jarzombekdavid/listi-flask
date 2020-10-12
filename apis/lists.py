@@ -4,7 +4,7 @@ from uuid import uuid4
 from flask import request, g
 from flask_restx import Namespace, Resource
 from .database import ListModel, UserModel
-from .auth import authenticate
+from .auth import authenticate, authenticate_list_access
 
 import logging
 
@@ -18,7 +18,7 @@ api = Namespace(
 @api.route('')
 class Lists(Resource):
     def get(self):
-        usr = UserModel.get(g.current_user)
+        usr = UserModel.get(session['current_user'])
         list_data = [(n.name, n.list_id) for n in ListModel.batch_get(usr.lists)]
         return list_data
 
@@ -28,10 +28,10 @@ class Lists(Resource):
         lm = ListModel(
             hash_key=new_id,
             name=request.args['name'],
-            source_user=g.current_user
+            source_user=session['current_user']
         )
         lm.save()
-        usr = UserModel.get(g.current_user)
+        usr = UserModel.get(session['current_user'])
         usr.lists.append(new_id)
         usr.save()
         return {'action': f'new list created: {request.args["name"]}'}, 201
@@ -61,7 +61,7 @@ class ListItems(Resource):
         new_item_id = str(uuid4())
         lm.items[new_item_id] = {
             'item_id': new_item_id,
-            'source_user': g.current_user,
+            'source_user': session['current_user'],
             'free_text': request.args['free_text'],
             'item_dict': request.args.get('item_dict', {})
         }
