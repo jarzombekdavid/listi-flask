@@ -1,4 +1,4 @@
-from flask import request
+from flask import request, g
 from flask_restx import abort
 from functools import wraps
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
@@ -8,20 +8,14 @@ from .database import UserModel
 
 
 def authenticate(func):
-    # assumes a returned token in request call
     @wraps(func)
     def wrapper(*args, **kwargs):
-        token = request.args.get('token')
-        if not token:
+        if not request.args.get('token'):
             abort(401, message='requires authorization token')
-        token = verify_token(token)
-        if token.get('user_id') == request.args['user_id']:  # verify user is the user in the api call
+        token = verify_token(request.args.get('token'))
+        if token:
+            g.current_user = token['user_id']
             return func(*args, **kwargs)
-        if request.args.get('list_id') and token.get('user_id'):
-            user = UserModel.get(token.get('user_id'))
-            raise ValueError(user.to_dict())
-            if request.args.get('list_id') in user.lists:  # if trying to access list, verify autheticated user has that access
-                return func(*args, **kwargs)
         abort(401)
     return wrapper
 
@@ -40,7 +34,13 @@ def verify_token(token):
     except (BadSignature, SignatureExpired):
         return {}
     return data
-
-
-
+    
+def verify_password(email, password):
+    user = UserModel.email_index.query(email)
+    user = [u for u in user]
+    if not user:
+        abort(400, message='user not found')
+    elif password != user[0].password:
+        abort(400, message='incorrect password')
+    return {'token': generate_token(user[0]), 'user_id': user[0].user_id}, 200
     

@@ -2,14 +2,22 @@ from uuid import uuid4
 from flask import request
 from flask_restx import Namespace, Resource
 from .database import UserModel
-from .auth import generate_token
+from .auth import generate_token, authenticate
 
 
-api = Namespace('user', description='list operations')
+api = Namespace(
+    'user',
+    description='list operations'
+)
+
+parser = api.parser()
+parser.add_argument('email', type=str,)
+parser.add_argument('password', type=str)
 
 
 @api.route('')
 class Users(Resource):
+    @api.expect(parser)
     def post(self):
         user_id = str(uuid4())
         params = request.args
@@ -24,6 +32,7 @@ class Users(Resource):
 @api.route('/<user_id>')
 class SingleUser(Resource):
     def delete(self, user_id):
+        method_decorators=[authenticate]
         params = request.args
         usr = UserModel.get(user_id)
         usr.delete()
@@ -32,22 +41,9 @@ class SingleUser(Resource):
 
 @api.route('/login')
 class Login(Resource):
+    @api.expect(parser)
     @api.doc(params={'email': 'email', 'password': 'password'})
     def post(self):
-        email, password = request.args.get('email'), request.args.get('password')
-        if request.args.get('email'):
-            try:
-                user = UserModel.email_index.query(request.args.get('email'))
-            except:
-                return {'error', 'error returning user'}, 400
-            user = [u for u in user]
-            if user:
-                if password != user[0].password:
-                    return {'error': 'incorrect password'}, 400
-                return {'token': generate_token(user[0]), 'user_id': user[0].user_id}, 200
-            else:
-                return {'error': 'user not found'}, 404
-        else:
-            return {'error': 'require email'}, 400
+        return verify_password(request.args['email'], request.args['password'])
 
     
