@@ -46,7 +46,7 @@ class SingleList(Resource):
     def get(self, list_id):
         lm = ListModel.get(list_id)
         return lm.to_dict(), 200
-    
+
 @api.route('/<list_id>/items')
 class ListItems(Resource):
     def get(self, list_id):
@@ -57,10 +57,10 @@ class ListItems(Resource):
     
     @api.doc(params={'free_text': 'free text for item', 'item_dict': 'json of attributes for item'})
     def post(self, list_id): #may need to be put
-        lm = ListModel.get(str(list_id))
-        new_id = str(uuid4())
-        lm.items[new_id] = {
-            'item_id': new_id,
+        lm = ListModel.get(list_id)
+        new_item_id = str(uuid4())
+        lm.items[new_item_id] = {
+            'item_id': new_item_id,
             'source_user': g.current_user,
             'free_text': request.args['free_text'],
             'item_dict': request.args.get('item_dict', {})
