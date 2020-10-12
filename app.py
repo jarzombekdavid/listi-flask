@@ -6,4 +6,4 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret_key'
 api.init_app(app)
 
-app.run(debug=True)
+# app.run(debug=True)
