@@ -74,7 +74,7 @@ class ListItem(Resource):
     @api.doc(params={
         'free_text': 'free text for item (optional)',
         'item_dict': 'json of attributes for item (optional)'})
-    def post(self, list_id, item_id):  #may need to be put
+    def put(self, list_id, item_id):
         lm = ListModel.get(list_id)
         lm.items[item_id] = {
             'item_id': item_id,
