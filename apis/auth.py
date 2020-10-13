@@ -13,7 +13,6 @@ import logging
 def authenticate():
     if not (request.method in ['GET', 'POST'] and request.url_rule in ['/', '/login']):
         token = verify_token(request.headers.get('Token'))
-        logging.warning(token)
         if not token:
             abort(401)
         return token['user_id']
