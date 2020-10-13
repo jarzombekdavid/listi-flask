@@ -24,17 +24,18 @@ class Lists(Resource):
     @api.doc(params={'user_id': 'active_user', 'name': 'list name'})
     def post(self):
         params = request.args
+        body = request.json
         new_id = str(uuid4())
         lm = ListModel(
             hash_key=new_id,
-            name=params['name'],
+            name=body['name'],
             source_user=params['user_id']
         )
         lm.save()
         usr = UserModel.get(params['user_id'])
         usr.lists.append(new_id)
         usr.save()
-        return {'action': f'new list created: {params["name"]}'}, 201
+        return {'action': f'new list created: {body["name"]}'}, 201
 
 
 @api.route('/<list_id>')
@@ -47,7 +48,7 @@ class SingleList(Resource):
     def get(self, list_id):
         lm = ListModel.get(list_id)
         return lm.to_dict(), 200
-    
+
 @api.route('/<list_id>/items')
 class ListItems(Resource):
     @api.doc('gets all items for a given list')
@@ -56,7 +57,7 @@ class ListItems(Resource):
         item_ids = lm.items.as_dict().keys()
         items = [lm.items[i] for i in list(item_ids) if lm.items[i]]
         return items, 200
-    
+
     @api.doc(params={'user_id': 'active_user', 'free_text': 'free text for item', 'item_dict': 'json of attributes for item'})
     def post(self, list_id): #may need to be put
         params = request.args
@@ -89,7 +90,7 @@ class ListItem(Resource):
         }
         lm.save()
         return {'action': 'updated list item'}, 200
-    
+
     def delete(self, list_id, item_id):
         lm = ListModel.get(str(list_id))
         lm.items[item_id] = {}

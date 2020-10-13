@@ -11,7 +11,8 @@ def authenticate(func):
     # assumes a returned token in request call
     @wraps(func)
     def wrapper(*args, **kwargs):
-        token = request.args.get('token')
+        # get token from headers
+        token = request.headers.get('Token')
         if not token:
             abort(401, message='requires authorization token')
         token = verify_token(token)
@@ -40,7 +41,3 @@ def verify_token(token):
     except (BadSignature, SignatureExpired):
         return {}
     return data
-
-
-
-    
