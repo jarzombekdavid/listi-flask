@@ -29,7 +29,7 @@ class Lists(Resource):
         lm = ListModel(
             hash_key=new_id,
             name=body['name'],
-            source_user=params['user_id']
+            source_user=session['current_user']
         )
         lm.save()
         usr = UserModel.get(params['user_id'])
