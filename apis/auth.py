@@ -6,32 +6,33 @@ from itsdangerous import SignatureExpired, BadSignature
 
 from .database import UserModel
 
+import logging
+
+
+def authenticate():
+    if not (request.method in ['GET', 'POST'] and request.url_rule in ['/', '/login']):
+        token = verify_token(request.headers.get('Token'))
+        logging.warning(token)
+        if not token:
+            abort(401)
+        return token['user_id']
+
 
 def authenticate_list_access(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        list_id = request.args.get('list_id')
-        list_id = kwargs.get('list_id') if not list_id else list_id
-        if not list_id:
-            return func(*args, **kwargs)
-        token = verify_token(request.args.get('token'))
-        approved_lists = UserModel.get(token['user_id']).lists
-        if list_id in approved_lists:
-            return func(*args, **kwargs)    
-        abort(404)
+        list_id = None
+      # if request.json:
+      #     list_id = request.json().get('list_id')
+      # if kwargs and not list_id:
+      #     list_id = kwargs.get('list_id')
+      # user = UserModel.safe_get(g.user_id)
+      # if user and list_id in user.lists:
+      #     return func(*args, **kwargs)    
+      #  abort(404)
+        return func(*args, **kwargs)
     return wrapper
 
-def authenticate(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if not request.args.get('token'):
-            abort(401, message='requires authorization token')
-        token = verify_token(request.args.get('token'))
-        if token:
-            session['current_user'] = token['user_id']
-            return func(*args, **kwargs)
-        abort(401)
-    return wrapper
 
 def generate_token(user, expiration=1000000):
     s = Serializer('SECRETKEY', expires_in=expiration)
@@ -43,6 +44,8 @@ def generate_token(user, expiration=1000000):
 
 def verify_token(token):
     s = Serializer('SECRETKEY')
+    if not token:
+        abort(400, 'token required')
     try:
         data = s.loads(token)
     except (BadSignature, SignatureExpired):
@@ -53,8 +56,7 @@ def verify_password(email, password):
     user = UserModel.email_index.query(email)
     user = [u for u in user]
     if not user:
-        abort(400, message='user not found')
+        abort(400, 'user not found')
     elif password != user[0].password:
-        abort(400, message='incorrect password')
+        abort(400, 'incorrect password')
     return {'token': generate_token(user[0]), 'user_id': user[0].user_id}, 200
-    

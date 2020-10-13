@@ -4,14 +4,14 @@ from uuid import uuid4
 from flask import request, g
 from flask_restx import Namespace, Resource
 from .database import ListModel, UserModel, crud
-from .auth import authenticate, authenticate_list_access
+from .auth import authenticate_list_access
 
 import logging
 
 api = Namespace(
     'lists',
     description='list operations',
-    decorators=[authenticate, authenticate_list_access]
+    decorators=[authenticate_list_access]
 )
 
 
@@ -23,8 +23,8 @@ class Lists(Resource):
 
     @api.doc(params={'name': 'list name'})
     def post(self):
-        crud.create_list(request.args['name'])
-        return {'action': f'new list created: {request.args["name"]}'}, 201
+        crud.create_list(request.args)
+        return {'action': 'new list created'}, 201
 
 
 @api.route('/<list_id>')
@@ -40,10 +40,12 @@ class SingleList(Resource):
 @api.route('/<list_id>/items')
 class ListItems(Resource):
     def get(self, list_id):
-        crud.get_items(list_id)
+        items = crud.get_items(list_id)
         return items, 200
-    
-    @api.doc(params={'free_text': 'free text for item', 'item_dict': 'json of attributes for item'})
+
+    @api.doc(params={
+        'free_text': 'free text for item',
+        'item_dict': 'json of attributes for item'})
     def post(self, list_id):
         crud.create_item(list_id)
         return {'action': 'added item to list'}, 200
@@ -55,9 +57,9 @@ class ListItem(Resource):
         'free_text': 'free text for item (optional)',
         'item_dict': 'json of attributes for item (optional)'})
     def put(self, list_id, item_id):
-        crud.update_item(list_id, item_id)
+        crud.update_item(list_id, item_id, request.args)
         return {'action': 'updated list item'}, 200
-    
+
     def delete(self, list_id, item_id):
         crud.delete_item(list_id, item_id)
         return {'action': 'item of list deleted'}, 200

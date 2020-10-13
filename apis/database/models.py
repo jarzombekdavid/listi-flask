@@ -34,12 +34,6 @@ class ItemAttr(MapAttribute):
 
 # create new basemodel to add to_dict for easy serialization
 class BaseModel(Model):
-    def safe_get(self, key, default=None):
-        return try:
-                 return self.get(key)
-        except DoesNotExist:
-            logging.warning('model does not exist')
-            return default
     def to_dict(self):
         rval = {}
         for key in self.attribute_values:
