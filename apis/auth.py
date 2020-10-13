@@ -3,6 +3,7 @@ from flask_restx import abort
 from functools import wraps
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import SignatureExpired, BadSignature
+from pynamodb.models import DoesNotExist
 
 from .database import UserModel
 
@@ -21,15 +22,16 @@ def authenticate():
 def authenticate_list_access(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        list_id = None
-      # if request.json:
-      #     list_id = request.json().get('list_id')
-      # if kwargs and not list_id:
-      #     list_id = kwargs.get('list_id')
-      # user = UserModel.safe_get(g.user_id)
-      # if user and list_id in user.lists:
-      #     return func(*args, **kwargs)    
-      #  abort(404)
+        list_id = request.args.get('list_id')
+        if kwargs and not list_id:
+            list_id = kwargs.get('list_id')
+        try:
+            user = UserModel.get(g.user_id)
+        except DoesNotExist:
+            abort(400, 'no user found')
+        if list_id and user and list_id in user.lists:
+            return func(*args, **kwargs) 
+        abort(404, 'not authorized')
         return func(*args, **kwargs)
     return wrapper
 
