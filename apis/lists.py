@@ -3,7 +3,7 @@ import json
 from uuid import uuid4
 from flask import request, g
 from flask_restx import Namespace, Resource
-from .database import ListModel, UserModel
+from .database import ListModel, UserModel, crud
 from .auth import authenticate, authenticate_list_access
 
 import logging
@@ -18,54 +18,34 @@ api = Namespace(
 @api.route('')
 class Lists(Resource):
     def get(self):
-        usr = UserModel.get(session['current_user'])
-        list_data = [(n.name, n.list_id) for n in ListModel.batch_get(usr.lists)]
-        return list_data
+        list_data = crud.get_lists()
+        return list_data, 200
 
     @api.doc(params={'name': 'list name'})
     def post(self):
-        new_id = str(uuid4())
-        lm = ListModel(
-            hash_key=new_id,
-            name=request.args['name'],
-            source_user=session['current_user']
-        )
-        lm.save()
-        usr = UserModel.get(session['current_user'])
-        usr.lists.append(new_id)
-        usr.save()
+        crud.create_list(request.args['name'])
         return {'action': f'new list created: {request.args["name"]}'}, 201
 
 
 @api.route('/<list_id>')
 class SingleList(Resource):
     def delete(self, list_id):
-        ListModel.delete(list_id)
+        crud.delete_list(list_id)
         return {'action': 'delete successful'}, 200
 
     def get(self, list_id):
-        lm = ListModel.get(list_id)
-        return lm.to_dict(), 200
+        lm = crud.get_single_list(list_id)
+        return lm, 200
 
 @api.route('/<list_id>/items')
 class ListItems(Resource):
     def get(self, list_id):
-        lm = ListModel.get(str(list_id))
-        item_ids = lm.items.as_dict().keys()
-        items = [lm.items[i] for i in list(item_ids) if lm.items[i]]
+        crud.get_items(list_id)
         return items, 200
     
     @api.doc(params={'free_text': 'free text for item', 'item_dict': 'json of attributes for item'})
-    def post(self, list_id): #may need to be put
-        lm = ListModel.get(list_id)
-        new_item_id = str(uuid4())
-        lm.items[new_item_id] = {
-            'item_id': new_item_id,
-            'source_user': session['current_user'],
-            'free_text': request.args['free_text'],
-            'item_dict': request.args.get('item_dict', {})
-        }
-        lm.save()
+    def post(self, list_id):
+        crud.create_item(list_id)
         return {'action': 'added item to list'}, 200
 
 
@@ -75,21 +55,9 @@ class ListItem(Resource):
         'free_text': 'free text for item (optional)',
         'item_dict': 'json of attributes for item (optional)'})
     def put(self, list_id, item_id):
-        lm = ListModel.get(list_id)
-        lm.update(
-            actions=[
-                ListModel.items[item_id].set(
-                    'item_id': item_id,
-                    'source_user': lm.items[item_id]['source_user'],
-                    'free_text': request.args.get('free_text', lm.items[item_id]['free_text']),
-                    'item_dict': request.args.get('item_dict', lm.items[item_id]['item_dict'])
-                )
-            ]
-        )
+        crud.update_item(list_id, item_id)
         return {'action': 'updated list item'}, 200
     
     def delete(self, list_id, item_id):
-        lm = ListModel.get(list_id)
-        lm.items[item_id] = {}
-        lm.save()
+        crud.delete_item(list_id, item_id)
         return {'action': 'item of list deleted'}, 200

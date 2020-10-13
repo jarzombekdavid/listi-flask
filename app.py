@@ -6,4 +6,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret_key'
 api.init_app(app)
 
+@app.before_first_request
+
+
 # app.run(debug=True)

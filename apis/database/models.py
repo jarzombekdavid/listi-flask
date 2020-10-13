@@ -1,7 +1,8 @@
-from pynamodb.models import Model
+from pynamodb.models import Model, DoesNotExist
 from pynamodb.indexes import GlobalSecondaryIndex, AllProjection
 from pynamodb.attributes import UnicodeAttribute, ListAttribute, MapAttribute, JSONAttribute, NumberAttribute
 
+import logging
 
 # hash key is an index
 # range key is an aditional search param
@@ -33,6 +34,12 @@ class ItemAttr(MapAttribute):
 
 # create new basemodel to add to_dict for easy serialization
 class BaseModel(Model):
+    def safe_get(self, key, default=None):
+        return try:
+                 return self.get(key)
+        except DoesNotExist:
+            logging.warning('model does not exist')
+            return default
     def to_dict(self):
         rval = {}
         for key in self.attribute_values:
