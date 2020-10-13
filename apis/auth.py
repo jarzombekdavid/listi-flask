@@ -1,4 +1,4 @@
-from flask import request
+from flask import request, g, session
 from flask_restx import abort
 from functools import wraps
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
@@ -7,22 +7,30 @@ from itsdangerous import SignatureExpired, BadSignature
 from .database import UserModel
 
 
+def authenticate_list_access(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        list_id = request.args.get('list_id')
+        list_id = kwargs.get('list_id') if not list_id else list_id
+        if not list_id:
+            return func(*args, **kwargs)
+        token = verify_token(request.args.get('token'))
+        approved_lists = UserModel.get(token['user_id']).lists
+        if list_id in approved_lists:
+            return func(*args, **kwargs)    
+        abort(404)
+    return wrapper
+
 def authenticate(func):
-    # assumes a returned token in request call
     @wraps(func)
     def wrapper(*args, **kwargs):
         # get token from headers
-        token = request.headers.get('Token')
-        if not token:
+        if not request.headers.get('Token'):
             abort(401, message='requires authorization token')
-        token = verify_token(token)
-        if token.get('user_id') == request.args['user_id']:  # verify user is the user in the api call
+        token = verify_token(request.headers.get('Token'))
+        if token:
+            session['current_user'] = token['user_id']
             return func(*args, **kwargs)
-        if request.args.get('list_id') and token.get('user_id'):
-            user = UserModel.get(token.get('user_id'))
-            raise ValueError(user.to_dict())
-            if request.args.get('list_id') in user.lists:  # if trying to access list, verify autheticated user has that access
-                return func(*args, **kwargs)
         abort(401)
     return wrapper
 
@@ -41,3 +49,12 @@ def verify_token(token):
     except (BadSignature, SignatureExpired):
         return {}
     return data
+    
+def verify_password(email, password):
+    user = UserModel.email_index.query(email)
+    user = [u for u in user]
+    if not user:
+        abort(400, message='user not found')
+    elif password != user[0].password:
+        abort(400, message='incorrect password')
+    return {'token': generate_token(user[0]), 'user_id': user[0].user_id}, 200
