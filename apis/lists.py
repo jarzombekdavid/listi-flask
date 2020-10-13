@@ -76,13 +76,16 @@ class ListItem(Resource):
         'item_dict': 'json of attributes for item (optional)'})
     def put(self, list_id, item_id):
         lm = ListModel.get(list_id)
-        lm.items[item_id] = {
-            'item_id': item_id,
-            'source_user': lm.items[item_id]['source_user'],
-            'free_text': request.args.get('free_text', lm.items[item_id]['free_text']),
-            'item_dict': request.args.get('item_dict', lm.items[item_id]['item_dict']),
-        }
-        lm.save()
+        lm.update(
+            actions=[
+                ListModel.items[item_id].set(
+                    'item_id': item_id,
+                    'source_user': lm.items[item_id]['source_user'],
+                    'free_text': request.args.get('free_text', lm.items[item_id]['free_text']),
+                    'item_dict': request.args.get('item_dict', lm.items[item_id]['item_dict'])
+                )
+            ]
+        )
         return {'action': 'updated list item'}, 200
     
     def delete(self, list_id, item_id):

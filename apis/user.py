@@ -10,14 +10,8 @@ api = Namespace(
     description='list operations'
 )
 
-parser = api.parser()
-parser.add_argument('email', type=str,)
-parser.add_argument('password', type=str)
-
-
 @api.route('')
 class Users(Resource):
-    @api.expect(parser)
     def post(self):
         user_id = str(uuid4())
         params = request.args
@@ -41,7 +35,6 @@ class SingleUser(Resource):
 
 @api.route('/login')
 class Login(Resource):
-    @api.expect(parser)
     @api.doc(params={'email': 'email', 'password': 'password'})
     def post(self):
         return verify_password(request.args['email'], request.args['password'])
