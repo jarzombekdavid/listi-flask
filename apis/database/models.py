@@ -1,7 +1,8 @@
-from pynamodb.models import Model
+from pynamodb.models import Model, DoesNotExist
 from pynamodb.indexes import GlobalSecondaryIndex, AllProjection
 from pynamodb.attributes import UnicodeAttribute, ListAttribute, MapAttribute, JSONAttribute, NumberAttribute
 
+import logging
 
 # hash key is an index
 # range key is an aditional search param
