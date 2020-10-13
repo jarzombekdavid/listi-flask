@@ -24,17 +24,19 @@ class Lists(Resource):
 
     @api.doc(params={'name': 'list name'})
     def post(self):
+        params = request.args
+        body = request.json
         new_id = str(uuid4())
         lm = ListModel(
             hash_key=new_id,
-            name=request.args['name'],
+            name=body['name'],
             source_user=session['current_user']
         )
         lm.save()
         usr = UserModel.get(session['current_user'])
         usr.lists.append(new_id)
         usr.save()
-        return {'action': f'new list created: {request.args["name"]}'}, 201
+        return {'action': f'new list created: {body["name"]}'}, 201
 
 
 @api.route('/<list_id>')
@@ -54,7 +56,7 @@ class ListItems(Resource):
         item_ids = lm.items.as_dict().keys()
         items = [lm.items[i] for i in list(item_ids) if lm.items[i]]
         return items, 200
-    
+
     @api.doc(params={'free_text': 'free text for item', 'item_dict': 'json of attributes for item'})
     def post(self, list_id): #may need to be put
         lm = ListModel.get(list_id)
@@ -87,7 +89,7 @@ class ListItem(Resource):
             ]
         )
         return {'action': 'updated list item'}, 200
-    
+
     def delete(self, list_id, item_id):
         lm = ListModel.get(list_id)
         lm.items[item_id] = {}

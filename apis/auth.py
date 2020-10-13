@@ -24,9 +24,10 @@ def authenticate_list_access(func):
 def authenticate(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if not request.args.get('token'):
+        # get token from headers
+        if not request.headers.get('Token'):
             abort(401, message='requires authorization token')
-        token = verify_token(request.args.get('token'))
+        token = verify_token(request.headers.get('Token'))
         if token:
             session['current_user'] = token['user_id']
             return func(*args, **kwargs)
@@ -57,4 +58,3 @@ def verify_password(email, password):
     elif password != user[0].password:
         abort(400, message='incorrect password')
     return {'token': generate_token(user[0]), 'user_id': user[0].user_id}, 200
-    
