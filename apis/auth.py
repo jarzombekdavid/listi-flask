@@ -30,7 +30,8 @@ def authenticate_list_access(func):
             abort(400, 'no user found')
         if list_id and user and list_id in user.lists:
             return func(*args, **kwargs) 
-        abort(404, 'not authorized')
+        if list_id:
+            abort(404, 'not authorized, list authentication failure for user')
         return func(*args, **kwargs)
     return wrapper
 

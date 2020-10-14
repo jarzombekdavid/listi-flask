@@ -37,6 +37,7 @@ class SingleList(Resource):
         lm = crud.get_single_list(list_id)
         return lm, 200
 
+
 @api.route('/<list_id>/items')
 class ListItems(Resource):
     def get(self, list_id):

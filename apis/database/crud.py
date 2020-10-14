@@ -19,8 +19,6 @@ def get_single_list(list_id):
         flask.abort(404, 'no list with given id')
     return lm.to_dict()
     
-        
-    
 
 def delete_list(list_id):
     try:
