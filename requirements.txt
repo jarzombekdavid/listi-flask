@@ -2,3 +2,4 @@ pynamodb
 flask
 flask-restx
 gunicorn
+python-dotenv
