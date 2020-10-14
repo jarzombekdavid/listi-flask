@@ -11,7 +11,7 @@ import logging
 
 
 def authenticate():
-    if not (request.method in ['GET', 'POST'] and request.url_rule in ['/', '/login']):
+    if not (request.method in ['GET', 'POST'] and str(request.url_rule) in ['/', '/user/login']):
         token = verify_token(request.headers.get('Token'))
         if not token:
             abort(401)
