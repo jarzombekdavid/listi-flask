@@ -18,7 +18,7 @@ def get_single_list(list_id):
     except DoesNotExist:
         flask.abort(404, 'no list with given id')
     return lm.to_dict()
-    
+
 
 def delete_list(list_id):
     try:
@@ -37,6 +37,7 @@ def create_list(params):
     usr = UserModel.get(g.user_id)
     usr.lists.append(new_id)
     usr.save()
+    return new_id
 
 
 def get_items(list_id):

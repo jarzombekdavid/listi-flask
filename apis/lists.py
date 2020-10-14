@@ -23,8 +23,14 @@ class Lists(Resource):
 
     @api.doc(params={'name': 'list name'})
     def post(self):
-        crud.create_list(request.args)
-        return {'action': 'new list created'}, 201
+        # TODO: decide if name should be in params or body
+        params = {
+            "name": request.args.get("name",
+                request.json.get("name")
+            )
+        }
+        id = crud.create_list(params)
+        return {'action': 'new list created', 'id': id}, 201
 
 
 @api.route('/<list_id>')
