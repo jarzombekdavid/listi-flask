@@ -14,4 +14,4 @@ api.init_app(app)
 def pre_request_authentication():
     g.user_id = authenticate()
 
-app.run(debug=True)
+# app.run(debug=True)
