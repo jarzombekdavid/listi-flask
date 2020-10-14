@@ -24,10 +24,7 @@ def authenticate_list_access(func):
         list_id = request.args.get('list_id')
         if kwargs and not list_id:
             list_id = kwargs.get('list_id')
-        try:
-            user = UserModel.get(g.user_id)
-        except DoesNotExist:
-            abort(400, 'no user found')
+        user = UserModel.get(g.user_id)
         if list_id and user and list_id in user.lists:
             return func(*args, **kwargs) 
         if list_id:
