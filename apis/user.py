@@ -24,7 +24,7 @@ class Users(Resource):
             email=params['email'],
             password=params['password']
         ).save()
-        return {'new_user': user_id}, 201
+        return {'new_user': user_id, "token": generate_token(user_id)}, 201
 
 
 @api.route('/<user_id>')
