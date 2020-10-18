@@ -1,5 +1,5 @@
 from uuid import uuid4
-from flask import request, abort
+from flask import request, abort, jsonify
 from flask_restx import Namespace, Resource
 from .database import UserModel
 from .auth import generate_token, verify_password
@@ -39,4 +39,4 @@ class SingleUser(Resource):
 class Login(Resource):
     @api.doc(params={'email': 'email', 'password': 'password'})
     def post(self):
-        return verify_password(request.args['email'], request.args['password'])
+        return verify_password(request.json.get('email'), request.json.get('password'))

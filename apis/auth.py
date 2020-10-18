@@ -1,4 +1,4 @@
-from flask import request, g, session
+from flask import request, g, session, jsonify
 from flask_restx import abort
 from functools import wraps
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
