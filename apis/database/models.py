@@ -50,7 +50,7 @@ class ListModel(BaseModel):
     name = UnicodeAttribute()
     source_user = UnicodeAttribute()
     items = MapAttribute(of=ItemAttr, default={})
-    
+
 
 
 class UserModel(BaseModel):
@@ -62,8 +62,15 @@ class UserModel(BaseModel):
     password = UnicodeAttribute()
     lists = ListAttribute(default=[])
 
+class ItemModel(BaseModel):
+    class Meta:
+        table_name = 'item_model'
+    list_id = UnicodeAttribute(hash_key=True)
+    keys = ListAttribute(default=[])
 
 if not ListModel.exists():
     ListModel.create_table(read_capacity_units=1, write_capacity_units=1, wait=True)
 if not UserModel.exists():
     UserModel.create_table(read_capacity_units=1, write_capacity_units=1, wait=True)
+if not ItemModel.exists():
+    ItemModel.create_table(read_capacity_units=1, write_capacity_units=1, wait=True)
