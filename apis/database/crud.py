@@ -1,6 +1,7 @@
 from uuid import uuid4
+import json
 from flask import request, session, g
-from .models import UserModel, ListModel
+from .models import UserModel, ListModel, ItemModel
 from pynamodb.models import DoesNotExist
 
 
@@ -52,13 +53,30 @@ def get_items(list_id):
 def create_item(list_id):
     lm = ListModel.get(list_id)
     new_item_id = str(uuid4())
+    data = json.loads(request.data)
     lm.items[new_item_id] = {
         'item_id': new_item_id,
         'source_user': g.user_id,
-        'free_text': request.args['free_text'],
-        'item_dict': request.args.get('item_dict', {})
+        'free_text': request.args.get('free_text', ''),
+        'item_dict': data
     }
     lm.save()
+    # update the list item model
+    item_keys = list(data.keys())
+    try:
+        im = ItemModel.get(list_id)
+        im.keys = item_keys
+    except:
+        im = ItemModel(
+            list_id=list_id,
+            keys=item_keys
+        )
+    finally:
+        im.save()
+
+def get_item_keys(list_id):
+    im = ItemModel.get(list_id)
+    return im.keys
 
 def update_item(list_id, item_id, params):
     try:

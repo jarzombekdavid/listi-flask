@@ -70,3 +70,9 @@ class ListItem(Resource):
     def delete(self, list_id, item_id):
         crud.delete_item(list_id, item_id)
         return {'action': 'item of list deleted'}, 200
+
+@api.route('/<list_id>/items/keys')
+class ListItemKey(Resource):
+    @api.doc()
+    def get(self, list_id):
+        return crud.get_item_keys(list_id)
